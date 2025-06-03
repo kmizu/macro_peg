@@ -44,7 +44,16 @@ case class Evaluator(grammar: Ast.Grammar, strategy: EvaluationStrategy = Evalua
           case Failure => Success(input)
         }
       case Ast.Call(pos, name, params) =>
-        val fun = bindings(name).asInstanceOf[Ast.Function]
+        val binding = bindings.get(name) match {
+          case Some(f: Ast.Function) => f
+          case Some(Ast.Identifier(_, id)) if bindings.contains(id) => 
+            bindings(id) match {
+              case f: Ast.Function => f
+              case _ => throw EvaluationException(s"$name is not bound to a function")
+            }
+          case _ => bindings(name).asInstanceOf[Ast.Function]
+        }
+        val fun = binding
         val args = fun.args
         val body = fun.body
         if(args.length != params.length) throw EvaluationException(s"args length of $name should be equal to params length")
@@ -119,7 +128,9 @@ case class Evaluator(grammar: Ast.Grammar, strategy: EvaluationStrategy = Evalua
       case Ast.Wildcard(pos) =>
         if (input.length >= 1) Success(input.substring(1)) else Failure
       case Ast.CharClass(_, _, _) => sys.error("must be unreachable")
-      case Ast.Function(_, _, _) => sys.error("must be unreachable")
+      case Ast.Function(_, _, _) => 
+        // Functions are values that don't consume input
+        Success(input)
     }
     evaluateIn(input, exp, FUNS)
   }
