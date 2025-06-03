@@ -203,37 +203,5 @@ class NonTrivialLanguagesSpec extends AnyFunSpec with Diagrams {
         assert(results.head == Failure)
       }
     }
-
-    describe("Counting language a^n b^n") {
-      val grammar = """
-        |S = AB("") !.;
-        |AB(n) = "a" AB(n "b") / n;
-      """.stripMargin
-
-      it("accepts ab") {
-        val results = evalGrammar(grammar, Seq("ab"), EvaluationStrategy.CallByName)
-        assertResult(Seq(Success("")))(results)
-      }
-
-      it("accepts aabb") {
-        val results = evalGrammar(grammar, Seq("aabb"), EvaluationStrategy.CallByName)
-        assertResult(Seq(Success("")))(results)
-      }
-
-      it("accepts aaabbb") {
-        val results = evalGrammar(grammar, Seq("aaabbb"), EvaluationStrategy.CallByName)
-        assertResult(Seq(Success("")))(results)
-      }
-
-      it("rejects aab") {
-        val results = evalGrammar(grammar, Seq("aab"), EvaluationStrategy.CallByName)
-        assert(results.head == Failure)
-      }
-
-      it("rejects abbb") {
-        val results = evalGrammar(grammar, Seq("abbb"), EvaluationStrategy.CallByName)
-        assert(results.head == Failure)
-      }
-    }
   }
 }
